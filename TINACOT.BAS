@@ -411,7 +411,7 @@
 14100 REM ::   High Score Read   ::
 14110 REM :::::::::::::::::::::::::
 14120 DEF PROC_HISCORE_READ(game$)
-14130 LOCAL f0, error%, val%
+14130 LOCAL f0%, error%, val%
 14140 error% = FALSE
 14150 f0% = OPENIN(game$ + ".HI")
 14160 IF f0% <> 0 THEN INPUT#f0%, val%:ELSE error% = TRUE
@@ -423,7 +423,7 @@
 14220 REM ::   High Score Write  ::
 14230 REM :::::::::::::::::::::::::
 14240 DEF PROC_HISCORE_WRITE(game$)
-14250 LOCAL f0
+14250 LOCAL f0%
 14260 f0% = OPENOUT(game$ + ".HI")
 14270 PRINT#f0%, HighScore%
 14280 CLOSE#f0%
