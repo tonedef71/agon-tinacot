@@ -99,9 +99,9 @@
 10980 UNTIL LevelComplete% OR Lost% OR Won%
 10990 ENDPROC
 11000 :
-11010 REM :::::::::::::::::::::::::
-11020 REM ::  Draw Playing Field ::
-11030 REM :::::::::::::::::::::::::
+11010 REM ::::::::::::::::::::::::
+11020 REM :: Draw Playing Field ::
+11030 REM ::::::::::::::::::::::::
 11040 DEF PROC_DRAW_PLAYING_FIELD(color%)
 11050 LOCAL ch%, i%, j%
 11060 FOR i% = 0 TO Side%*2
@@ -742,7 +742,7 @@
 17410 REM ::  Error Handling Routine  ::
 17420 REM ::::::::::::::::::::::::::::::
 17430 DEF PROC_HANDLE_ERROR
-17440 IF ERR <> 17 THEN PROC_DEFAULT_COLORS:PROC_SHOW_CURSOR:REPORT:PRINT" @line #";ERL:STOP
+17440 IF ERR <> 17 THEN PROC_DEFAULT_COLORS:PROC_SHOW_CURSOR:PRINT:REPORT:PRINT" @line #";ERL:STOP
 17450 ENDPROC
 17460 :
 17470 REM ::::::::::::::::::::::::::::::
