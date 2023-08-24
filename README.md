@@ -1,4 +1,5 @@
-# agon-tinacot
+# agon-tinacot ![tinacot_icon](https://github.com/tonedef71/agon-tinacot/assets/3978924/33a1fa0e-156e-433c-a68d-eef337872d74)
+
 TINACOT, a recursive acronym which stands for "TINACOT is not a clone of Tetris", is an action strategy game written in [BBC BASIC v3](https://en.wikipedia.org/wiki/BBC_BASIC) and inspired by [tower defense games](https://en.wikipedia.org/wiki/Tower_defense) and [*Tetris*](https://en.wikipedia.org/wiki/Tetris).
 
 * Originally created for the [4th Olimex AgonLight Week Programming Challenge 2023](https://olimex.wordpress.com/2023/07/14/agonlight-week-programming-challenge-issue-4/)
