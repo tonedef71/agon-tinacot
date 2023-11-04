@@ -1,7 +1,7 @@
 10000 REM :::::::::::::::::::::::::::::::::::::::::::::
 10010 REM :: TINACOT FOR AgonLight (BBC BASIC v3)    ::
 10020 REM :::::::::::::::::::::::::::::::::::::::::::::
-10030 REM :: 20231103: Ver 1.2 - Use new VDP MODEs   ::
+10030 REM :: 20231103: Ver 1.2.1 - Use new VDP MODEs ::
 10040 REM :::::::::::::::::::::::::::::::::::::::::::::
 10050 REM :: This original game was submitted to the ::
 10060 REM :: Olimex Week Programming Challenge       ::
@@ -12,7 +12,7 @@
 10110 REM :::::::::::::::::::::::::::::::::::::::::::::
 10120 CLEAR
 10130 REPEAT CLS:SY$=FN_TO_UPPER(FN_PROMPT(0,0,"TARGET (A)gon or (B)BC B-SDL:","A")):UNTIL SY$ = "A" OR SY$ = "B"
-10140 IF SY$ = "B" THEN LEFT = 136:RIGHT = 137:DOWN = 138:UP = 139:DL% = 10:MO% = 9:ELSE LEFT = 8:RIGHT = 21:DOWN = 10:UP = 11:DL% = 14:MO% = 12
+10140 IF SY$ = "B" THEN LEFT = 136:RIGHT = 137:DOWN = 138:UP = 139:DL% = 10:MO% = 9:ELSE LEFT = 8:RIGHT = 21:DOWN = 10:UP = 11:DL% = 14:MO% = 8
 10150 IF SY$ = "A" THEN REPEAT CLS:MO$=FN_PROMPT_FOR_NUMBERS(0,0,"MODE (0,3,4,8,9,12,13,...):",STR$(MO%),3):UNTIL VAL(MO$) >= 0:MO% = VAL(MO$)
 10160 MODE MO%
 10170 PROC_SETUP
