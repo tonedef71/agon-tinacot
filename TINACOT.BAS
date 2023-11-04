@@ -1,7 +1,7 @@
 10000 REM :::::::::::::::::::::::::::::::::::::::::::::
 10010 REM :: TINACOT FOR AgonLight (BBC BASIC v3)    ::
 10020 REM :::::::::::::::::::::::::::::::::::::::::::::
-10030 REM :: 20230724: Version 1.1                   ::
+10030 REM :: 20231103: Ver 1.2 - Use new VDP MODEs   ::
 10040 REM :::::::::::::::::::::::::::::::::::::::::::::
 10050 REM :: This original game was submitted to the ::
 10060 REM :: Olimex Week Programming Challenge       ::
@@ -12,8 +12,8 @@
 10110 REM :::::::::::::::::::::::::::::::::::::::::::::
 10120 CLEAR
 10130 REPEAT CLS:SY$=FN_TO_UPPER(FN_PROMPT(0,0,"TARGET (A)gon or (B)BC B-SDL:","A")):UNTIL SY$ = "A" OR SY$ = "B"
-10140 IF SY$ = "B" THEN LEFT = 136:RIGHT = 137:DOWN = 138:UP = 139:DL% = 10:MO% = 9:ELSE LEFT = 8:RIGHT = 21:DOWN = 10:UP = 11:DL% = 14:MO% = 2
-10150 IF SY$ = "A" THEN REPEAT CLS:MO$=FN_PROMPT(0,0,"MODE (1,2,3,...):",STR$(MO%)):UNTIL VAL(MO$) > 0:MO% = VAL(MO$)
+10140 IF SY$ = "B" THEN LEFT = 136:RIGHT = 137:DOWN = 138:UP = 139:DL% = 10:MO% = 9:ELSE LEFT = 8:RIGHT = 21:DOWN = 10:UP = 11:DL% = 14:MO% = 12
+10150 IF SY$ = "A" THEN REPEAT CLS:MO$=FN_PROMPT_FOR_NUMBERS(0,0,"MODE (0,3,4,8,9,12,13,...):",STR$(MO%),3):UNTIL VAL(MO$) >= 0:MO% = VAL(MO$)
 10160 MODE MO%
 10170 PROC_SETUP
 10180 ON ERROR PROC_HANDLE_ERROR:REM Handle ESC key
@@ -24,8 +24,8 @@
 10230   PROC_MAIN_LOOP:REM Invoke main loop
 10240   GameOver% = Won% OR Lost%
 10250   IF GameOver% THEN PROC_GAME_OVER:Resp$ = FN_PLAY_AGAIN:IF Resp$ = "Y" THEN GameOver% = FALSE
-10260   IF GameOver% THEN PROC_GOODBYE(GameName$)
-10270 UNTIL GameOver%
+10260 UNTIL GameOver%
+10270 PROC_GOODBYE(GameName$)
 10280 END
 10290 :
 10300 REM ::::::::::::::::::::
@@ -301,7 +301,7 @@
 13000 REM :::::::::::::::::::
 13010 DEF PROC_WELCOME
 13020 LOCAL boxh%, boxw%, c%, cc%, ch$, co%, ex%, perimeter%, t%, t$, ux%, uy%
-13030 ch% = ASC("*"):boxh% = 19:boxw% = 38:cc% = 0:ex% = FALSE:perimeter% = 2 * (boxw% + boxh% - 2):t% = 2:ux% = (CW% - boxw%) DIV 2:uy% = 0:co% = 0
+13030 ch% = ASC("*"):boxh% = FN_MIN(CH%, 19):boxw% = FN_MIN(CW%, 40):cc% = 0:ex% = FALSE:perimeter% = 2 * (boxw% + boxh% - 2):t% = 2:ux% = (CW% - boxw%) DIV 2:uy% = 0:co% = 0
 13040 PROC_DEFAULT_COLORS:CLS:PROC_HIDE_CURSOR
 13050 PRINT TAB(0, uy% + 2);
 13060 PROC_CENTER("Welcome to " + CHR$(17)+CHR$(YELLOW) + GameName$ + CHR$(17)+CHR$(WHITE)+ "..."):PRINT:PRINT
@@ -321,9 +321,9 @@
 13200   cc% = (cc% + 1) MOD perimeter%:IF cc% = 1 THEN co% = (co% + 1) MOD 7 + 1
 13210   PROC_CLOCKWISE_PLOT(cc%, co%, ch%, ux%, uy%, boxw%, boxh%)
 13220   IF SY$ = "A" THEN c% = INKEY(DL%):PROC_EMPTY_KEYBOARD_BUFFER:ELSE c% = INKEY(TK/DL%)
-13230   IF c% > 0 THEN ex% = TRUE
+13230   ex% = (c% > 0)
 13240 UNTIL ex%
-13250 PROC_DEFAULT_COLORS:CLS:boxh% = 16:cc% = 0:ex% = FALSE:perimeter% = 2 * (boxw% + boxh% - 2)
+13250 PROC_DEFAULT_COLORS:CLS:boxh% = FN_MIN(CH%, 16):cc% = 0:ex% = FALSE:perimeter% = 2 * (boxw% + boxh% - 2)
 13260 PRINT TAB(0, uy% + 2);
 13270 PROC_CENTER("Be careful not to repel a"):PRINT
 13280 PROC_CENTER("matching piece, which can occur"):PRINT
@@ -340,7 +340,7 @@
 13390   cc% = (cc% + 1) MOD perimeter%:IF cc% = 1 THEN co% = (co% + 1) MOD 7 + 1
 13400   PROC_CLOCKWISE_PLOT(cc%, co%, ch%, ux%, uy%, boxw%, boxh%)
 13410   IF SY$ = "A" THEN c% = INKEY(DL%):PROC_EMPTY_KEYBOARD_BUFFER:ELSE c% = INKEY(TK/DL%)
-13420   IF c% > 0 THEN ex% = TRUE
+13420   ex% = (c% > 0)
 13430 UNTIL ex%
 13440 PROC_DEFAULT_COLORS
 13450 ENDPROC
@@ -442,7 +442,7 @@
 14410 REM :::::::::::::::::::::
 14420 REM ::   Center text   ::
 14430 REM :::::::::::::::::::::
-14440 DEF FN_CENTER(text$):= (CW% - LEN(text$)) DIV 2  + 1
+14440 DEF FN_CENTER(text$):= 1 + (CW% - LEN(text$)) DIV 2
 14450 :
 14460 REM ::::::::::::::::::::::
 14470 REM :: Maximum of x & y ::
@@ -588,170 +588,186 @@
 15870 r$ = GET$:r$ = FN_TO_UPPER(r$):IF r$ = CHR$(13) THEN r$ = default$
 15880 := r$
 15890 :
-15900 REM :::::::::::::::::::::::::::::
-15910 REM ::  Display Centered Text  ::
-15920 REM :::::::::::::::::::::::::::::
-15930 DEF PROC_CENTER(text$)
-15940 LOCAL i%, n%, l%
-15950 l% = 0
-15960 FOR i% = 1 TO LEN(text$)
-15970   IF ASC(MID$(text$, i%, 1)) >= BLANK THEN l% = l% + 1
-15980 NEXT i%
-15990 n% = FN_CENTER(STRING$(l%, CHR$(BLANK)))
-16000 i% = VPOS:VDU 31, n%, i%
-16010 FOR i% = 1 TO LEN(text$)
-16020   VDU ASC(MID$(text$, i%, 1))
-16030 NEXT i%
-16040 ENDPROC
+15900 REM :::::::::::::::::::::::::::::::::
+15910 REM :: Enter numbers from keyboard ::
+15920 REM :::::::::::::::::::::::::::::::::
+15930 DEF FN_PROMPT_FOR_NUMBERS(x%, y%, text$, default$, length%)
+15940 LOCAL c$, r$
+15950 r$ = "":PROC_EMPTY_KEYBOARD_BUFFER:PROC_SHOW_CURSOR
+15960 PRINT TAB(x%, y%)text$;" ";default$:PRINT TAB(x% + LEN(text$) + 1, y%);
+15970 REPEAT
+15980   c$ = GET$
+15990   IF ((c$ = CHR$(127) OR c$ = CHR$(8)) AND LEN(r$) > 0) THEN r$ = LEFT$(r$, LEN(r$) - 1):PRINT CHR$(127);
+16000   IF (c$ >= "0" AND c$ <= "9") AND LEN(r$) < length% THEN r$ = r$ + c$:PRINT c$;
+16010   IF c$ = CHR$(13) AND LEN(r$) = 0 THEN r$ = default$
+16020 UNTIL (c$ = CHR$(13) AND LEN(r$) <= length%)
+16030 PROC_HIDE_CURSOR
+16040 := r$
 16050 :
-16060 REM ::::::::::::::::::::::::::::
-16070 REM :: Restore Default Colors ::
-16080 REM ::::::::::::::::::::::::::::
-16090 DEF PROC_DEFAULT_COLORS
-16100 COLOUR 128+BLACK:COLOUR WHITE
-16110 ENDPROC
-16120 :
-16130 REM :::::::::::::::::::::::::::::::::::::::::::
-16140 REM ::  Calculate type index of a clockwise  ::
-16150 REM ::  position on a box's perimeter        ::
-16160 REM :::::::::::::::::::::::::::::::::::::::::::
-16170 DEF FN_CLOCKWISE_BOX_SIDE_INDEX(pos%, width%, height%)
-16180 REM 0 = UPPER_LEFT_CORNER, 1 = UPPER_MIDDLE, 2 = UPPER_RIGHT_CORNER, 3 = MIDDLE_RIGHT, 4 = LOWER_RIGHT_CORNER, 5 = LOWER_MIDDLE, 6 = LOWER_LEFT_CORNER, 7 = MIDDLE_LEFT
-16190 LOCAL r%
-16200 r% = (pos% > 0 AND pos% < width% - 1) * -1 + (pos% = width% - 1) * -2 + (pos% >= width% AND pos% < width% + height% - 2) * -3 + (pos% = width% + height% - 2) * -4
-16210 r% = r% + (pos% > width% + height% - 2 AND pos% < 2 * width% + height% - 3) * -5 + (pos% = 2 * width% + height% - 3) * -6 + (pos% > 2 * width% + height% - 3) * -7
-16220 :=r%
-16230 :
-16240 REM ::::::::::::::::::::::::::
-16250 REM ::  Draw Box Clockwise  ::
-16260 REM ::::::::::::::::::::::::::
-16270 DEF PROC_CLOCKWISE_BOX(ux%, uy%, width%, height%, color%)
-16280 LOCAL aq%, bq%, ch%, i%, p%, x%, y%
-16290 aq% = width% + height% - 2:bq% = aq% + width%:p% = bq% + height% - 2
-16300 FOR i% = 0 TO p% - 1
-16310   x% = (i% < width%) * -i% + (i% > (width%-1) AND i% < aq%) * -(width%-1) + (i% >= aq% AND i% < bq%) * (i% - (bq% - 1)) + (i% >= bq%) * 0
-16320   y% = (i% < width%) * 0 + (i% > (width%-1) AND i% < aq%) * -(i% - (width%-1)) + (i% >= aq% AND i% < bq%) * -(height%-1) + (i% >= bq%) * -((height%-2) - (i% - bq%))
-16330   ch% = ASC(MID$(BX$, FN_CLOCKWISE_BOX_SIDE_INDEX(i%, width%, height%) + 1, 1))
-16340   PROC_PLOT(ux% + x%, uy% + y%, ch%, color%)
-16350 NEXT i%
-16360 ENDPROC
-16370 :
-16380 REM ::::::::::::::::::::::::::::::::
-16390 REM ::       Clockwise Plot       ::
-16400 REM ::::::::::::::::::::::::::::::::
-16410 DEF PROC_CLOCKWISE_PLOT(pos%, color%, char%, ux%, uy%, width%, height%)
-16420 LOCAL cx%, cy%, a%, b%, c%
-16430 a% = width% + height% - 2:b% = a% + width%:c% = b% + height% - 2
-16440 cx% = (pos% < width%) * -pos% + (pos% > (width% - 1) AND pos% < a%) * -(width% - 1)
-16450 cx% = cx% + (pos% >= a% AND pos% < b%) * (pos% - (b% - 1)) + (pos% >= b%) * 0
-16460 cy% = (pos% < width%) * 0 + (pos% > (width% - 1) AND pos% < a%) * -(pos% - (width% - 1))
-16470 cy% = cy% + (pos% >= a% AND pos% < b%) * -(height% - 1) + (pos% >= b%) * -((height% - 2) - (pos% - b%))
-16480 VDU 31,ux% + cx%,uy% + cy%,17,color%,char%:REM Plot a character on the path
-16490 ENDPROC
-16500 :
-16510 REM :::::::::::::::::::::::
-16520 REM :: Play Simple Sound ::
-16530 REM :::::::::::::::::::::::
-16540 DEF PROC_SOUND(index%, duration%)
-16550 LOCAL constant%
-16560 constant% = 12.2
-16570 SOUND 1, -10, index% * constant%, duration%
-16580 ENDPROC
-16590 :
-16600 REM :::::::::::::::::::::::::
-16610 REM :: Play Musical Phrase ::
-16620 REM :::::::::::::::::::::::::
-16630 DEF PROC_PLAY(notes$)
-16640 LOCAL d%, j%, l%, p%
-16650 l% = LEN(notes$) DIV 3
-16660 FOR j% = 1 TO l% STEP 2
-16670   p% = VAL(MID$(notes$, 3 * (j% - 1) + 1, 3)):d% = VAL(MID$(notes$, 3 * (j% - 1) + 4, 3))
-16680   IF p% >= 0 THEN SOUND 1, -10, p%, d%:ELSE SOUND 1, 0, 0, d%
-16690   SOUND 1, 0, p%, 1:REM Stacatto the currently playing sound
-16700 NEXT j%
-16710 ENDPROC
-16720 :
-16730 REM :::::::::::::::::::::::
-16740 REM :: Level Start Music ::
-16750 REM :::::::::::::::::::::::
-16760 DEF PROC_LEVEL_START_MUSIC
-16770 PROC_PLAY(STRING$(Level% * 2 + 2, "129004"))
-16780 ENDPROC
-16790 :
-16800 REM :::::::::::::::::::
-16810 REM ::  CHARGE!!!!!  ::
-16820 REM :::::::::::::::::::
-16830 DEF PROC_CHARGE
-16840 PROC_PLAY("129001149001165001177004165002177008"):REM COUNT,PITCH,DURATION
-16850 ENDPROC
-16860 :
-16870 REM ::::::::::::::
-16880 REM ::  Tada!!  ::
-16890 REM ::::::::::::::
-16900 REM COUNT,PITCH,DURATION
-16910 DEF PROC_TADA
-16920 PROC_PLAY("197002225008"):REM COUNT,PITCH,DURATION
-16930 ENDPROC
-16940 :
-16950 REM :::::::::::::::
-16960 REM ::  WAH-WAH  ::
-16970 REM :::::::::::::::
-16980 REM COUNT,PITCH,DURATION
-16990 DEF PROC_WAH_WAH
-17000 PROC_PLAY("081002081002081002069020073002073002073002061024"):REM COUNT,PITCH,DURATION
+16060 REM :::::::::::::::::::::::::::::
+16070 REM ::  Display Centered Text  ::
+16080 REM :::::::::::::::::::::::::::::
+16090 DEF PROC_CENTER(text$)
+16100 LOCAL i%, n%, l%
+16110 l% = 0
+16120 FOR i% = 1 TO LEN(text$)
+16130   IF ASC(MID$(text$, i%, 1)) >= BLANK THEN l% = l% + 1
+16140 NEXT i%
+16150 n% = FN_CENTER(STRING$(l%, CHR$(BLANK)))
+16160 i% = VPOS:VDU 31, n%, i%
+16170 FOR i% = 1 TO LEN(text$)
+16180   VDU ASC(MID$(text$, i%, 1))
+16190 NEXT i%
+16200 ENDPROC
+16210 :
+16220 REM ::::::::::::::::::::::::::::
+16230 REM :: Restore Default Colors ::
+16240 REM ::::::::::::::::::::::::::::
+16250 DEF PROC_DEFAULT_COLORS
+16260 COLOUR 128+BLACK:COLOUR WHITE
+16270 ENDPROC
+16280 :
+16290 REM :::::::::::::::::::::::::::::::::::::::::::
+16300 REM ::  Calculate type index of a clockwise  ::
+16310 REM ::  position on a box's perimeter        ::
+16320 REM :::::::::::::::::::::::::::::::::::::::::::
+16330 DEF FN_CLOCKWISE_BOX_SIDE_INDEX(pos%, width%, height%)
+16340 REM 0 = UPPER_LEFT_CORNER, 1 = UPPER_MIDDLE, 2 = UPPER_RIGHT_CORNER, 3 = MIDDLE_RIGHT, 4 = LOWER_RIGHT_CORNER, 5 = LOWER_MIDDLE, 6 = LOWER_LEFT_CORNER, 7 = MIDDLE_LEFT
+16350 LOCAL r%
+16360 r% = (pos% > 0 AND pos% < width% - 1) * -1 + (pos% = width% - 1) * -2 + (pos% >= width% AND pos% < width% + height% - 2) * -3 + (pos% = width% + height% - 2) * -4
+16370 r% = r% + (pos% > width% + height% - 2 AND pos% < 2 * width% + height% - 3) * -5 + (pos% = 2 * width% + height% - 3) * -6 + (pos% > 2 * width% + height% - 3) * -7
+16380 :=r%
+16390 :
+16400 REM ::::::::::::::::::::::::::
+16410 REM ::  Draw Box Clockwise  ::
+16420 REM ::::::::::::::::::::::::::
+16430 DEF PROC_CLOCKWISE_BOX(ux%, uy%, width%, height%, color%)
+16440 LOCAL aq%, bq%, ch%, i%, p%, x%, y%
+16450 aq% = width% + height% - 2:bq% = aq% + width%:p% = bq% + height% - 2
+16460 FOR i% = 0 TO p% - 1
+16470   x% = (i% < width%) * -i% + (i% > (width%-1) AND i% < aq%) * -(width%-1) + (i% >= aq% AND i% < bq%) * (i% - (bq% - 1)) + (i% >= bq%) * 0
+16480   y% = (i% < width%) * 0 + (i% > (width%-1) AND i% < aq%) * -(i% - (width%-1)) + (i% >= aq% AND i% < bq%) * -(height%-1) + (i% >= bq%) * -((height%-2) - (i% - bq%))
+16490   ch% = ASC(MID$(BX$, FN_CLOCKWISE_BOX_SIDE_INDEX(i%, width%, height%) + 1, 1))
+16500   PROC_PLOT(ux% + x%, uy% + y%, ch%, color%)
+16510 NEXT i%
+16520 ENDPROC
+16530 :
+16540 REM ::::::::::::::::::::::::::::::::
+16550 REM ::       Clockwise Plot       ::
+16560 REM ::::::::::::::::::::::::::::::::
+16570 DEF PROC_CLOCKWISE_PLOT(pos%, color%, char%, ux%, uy%, width%, height%)
+16580 LOCAL cx%, cy%, a%, b%, c%
+16590 a% = width% + height% - 2:b% = a% + width%:c% = b% + height% - 2
+16600 cx% = (pos% < width%) * -pos% + (pos% > (width% - 1) AND pos% < a%) * -(width% - 1)
+16610 cx% = cx% + (pos% >= a% AND pos% < b%) * (pos% - (b% - 1)) + (pos% >= b%) * 0
+16620 cy% = (pos% < width%) * 0 + (pos% > (width% - 1) AND pos% < a%) * -(pos% - (width% - 1))
+16630 cy% = cy% + (pos% >= a% AND pos% < b%) * -(height% - 1) + (pos% >= b%) * -((height% - 2) - (pos% - b%))
+16640 VDU 31,ux% + cx%,uy% + cy%,17,color%,char%:REM Plot a character on the path
+16650 ENDPROC
+16660 :
+16670 REM :::::::::::::::::::::::
+16680 REM :: Play Simple Sound ::
+16690 REM :::::::::::::::::::::::
+16700 DEF PROC_SOUND(index%, duration%)
+16710 LOCAL constant%
+16720 constant% = 12.2
+16730 SOUND 1, -10, index% * constant%, duration%
+16740 ENDPROC
+16750 :
+16760 REM :::::::::::::::::::::::::
+16770 REM :: Play Musical Phrase ::
+16780 REM :::::::::::::::::::::::::
+16790 DEF PROC_PLAY(notes$)
+16800 LOCAL d%, j%, l%, p%
+16810 l% = LEN(notes$) DIV 3
+16820 FOR j% = 1 TO l% STEP 2
+16830   p% = VAL(MID$(notes$, 3 * (j% - 1) + 1, 3)):d% = VAL(MID$(notes$, 3 * (j% - 1) + 4, 3))
+16840   IF p% >= 0 THEN SOUND 1, -10, p%, d%:ELSE SOUND 1, 0, 0, d%
+16850   SOUND 1, 0, p%, 1:REM Stacatto the currently playing sound
+16860 NEXT j%
+16870 ENDPROC
+16880 :
+16890 REM :::::::::::::::::::::::
+16900 REM :: Level Start Music ::
+16910 REM :::::::::::::::::::::::
+16920 DEF PROC_LEVEL_START_MUSIC
+16930 PROC_PLAY(STRING$(Level% * 2 + 2, "129004"))
+16940 ENDPROC
+16950 :
+16960 REM :::::::::::::::::::
+16970 REM ::  CHARGE!!!!!  ::
+16980 REM :::::::::::::::::::
+16990 DEF PROC_CHARGE
+17000 PROC_PLAY("129001149001165001177004165002177008"):REM COUNT,PITCH,DURATION
 17010 ENDPROC
 17020 :
-17030 REM :::::::::::::::::::::::::::
-17040 REM :: Plot a single colored ::
-17050 REM :: character to screen   ::
-17060 REM :::::::::::::::::::::::::::
-17070 DEF PROC_PLOT(x%, y%, ch%, co%)
-17080 VDU 31, x%, y%
-17090 VDU 17, co%, ch%
-17100 ENDPROC
-17110 :
-17120 REM ::::::::::::::::::::::::::
-17130 REM :: Define Custom Colors ::
-17140 REM ::::::::::::::::::::::::::
-17150 DEF PROC_REDEFINE_COLORS
-17160 IF SY$="A" AND FN_COLORCOUNT < &40 THEN VDU 19,C_ORANGE,&FF,&FF,&80,&00:ELSE COLOUR C_ORANGE,&FF,&80,&00
+17030 REM ::::::::::::::
+17040 REM ::  Tada!!  ::
+17050 REM ::::::::::::::
+17060 REM COUNT,PITCH,DURATION
+17070 DEF PROC_TADA
+17080 PROC_PLAY("197002225008"):REM COUNT,PITCH,DURATION
+17090 ENDPROC
+17100 :
+17110 REM :::::::::::::::
+17120 REM ::  WAH-WAH  ::
+17130 REM :::::::::::::::
+17140 REM COUNT,PITCH,DURATION
+17150 DEF PROC_WAH_WAH
+17160 PROC_PLAY("081002081002081002069020073002073002073002061024"):REM COUNT,PITCH,DURATION
 17170 ENDPROC
 17180 :
-17190 REM ::::::::::::::::::::::::::::::
-17200 REM :: Define Custom Characters ::
-17210 REM ::::::::::::::::::::::::::::::
-17220 DEF PROC_REDEFINE_CHARS
-17230 VDU 23,HASH,141,108,99,27,216,198,54,177:REM HASH
-17240 VDU 23,36,114,147,156,228,39,57,201,78:REM I_HASH
-17250 VDU 23,B_VERT,24,24,24,24,24,24,24,24:REM VERTICAL(4)
-17260 VDU 23,B_HORZ,0,0,0,255,255,0,0,0:REM HORIZONTAL(4)
-17270 VDU 23,B_UR,0,0,0,7,15,28,24,24:REM UPRIGHT C(4)
-17280 VDU 23,B_UL,0,0,0,224,240,56,24,24:REM UPLEFT C(4)
-17290 VDU 23,B_DL,24,24,56,240,224,0,0,0:REM DOWNLEFT C(4)
-17300 VDU 23,B_DR,24,24,28,15,7,0,0,0:REM DOWN RIGHT C(4)
-17310 VDU 23,PWN_1,24,24,24,24,24,24,24,24:REM PAWN 1
-17320 VDU 23,PWN_2,0,12,12,12,12,60,60,0:REM PAWN 2
-17330 VDU 23,PWN_3,0,48,48,48,48,60,60,0:REM PAWN 3
-17340 VDU 23,PWN_4,0,0,60,60,60,60,0,0:REM PAWN 4
-17350 VDU 23,PWN_5,0,0,30,30,120,120,0,0:REM PAWN 5
-17360 VDU 23,PWN_6,0,0,126,126,24,24,0,0:REM PAWN 6
-17370 VDU 23,PWN_7,0,0,120,120,30,30,0,0:REM PAWN 7
-17380 ENDPROC
-17390 :
-17400 REM ::::::::::::::::::::::::::::::
-17410 REM ::  Error Handling Routine  ::
-17420 REM ::::::::::::::::::::::::::::::
-17430 DEF PROC_HANDLE_ERROR
-17440 IF ERR <> 17 THEN PROC_DEFAULT_COLORS:PROC_SHOW_CURSOR:PRINT:REPORT:PRINT" @line #";ERL:STOP
-17450 ENDPROC
-17460 :
-17470 REM ::::::::::::::::::::::::::::::
-17480 REM ::  Console Output (DEBUG)  ::
-17490 REM ::::::::::::::::::::::::::::::
-17500 DEF PROC_COUT(text$, row%):VDU 31,0,CH%+row%,17,WHITE:PRINT text$:ENDPROC
-17510 :
-17520 REM :::::::::::::::::::::::::::::::
-17530 REM ::  Test FN_GET_KEY (DEBUG)  ::
-17540 REM :::::::::::::::::::::::::::::::
-17550 DEF PROC_KEYTEST:CLS:REPEAT PRINT TAB(18,0)STR$(FN_GET_KEY(30))"   ":UNTIL FALSE
-17560 ENDPROC
+17190 REM :::::::::::::::::::::::::::
+17200 REM :: Plot a single colored ::
+17210 REM :: character to screen   ::
+17220 REM :::::::::::::::::::::::::::
+17230 DEF PROC_PLOT(x%, y%, ch%, co%)
+17240 VDU 31, x%, y%
+17250 VDU 17, co%, ch%
+17260 ENDPROC
+17270 :
+17280 REM ::::::::::::::::::::::::::
+17290 REM :: Define Custom Colors ::
+17300 REM ::::::::::::::::::::::::::
+17310 DEF PROC_REDEFINE_COLORS
+17320 IF SY$="A" AND FN_COLORCOUNT < &40 THEN VDU 19,C_ORANGE,&FF,&FF,&80,&00:ELSE COLOUR C_ORANGE,&FF,&80,&00
+17330 ENDPROC
+17340 :
+17350 REM ::::::::::::::::::::::::::::::
+17360 REM :: Define Custom Characters ::
+17370 REM ::::::::::::::::::::::::::::::
+17380 DEF PROC_REDEFINE_CHARS
+17390 VDU 23,HASH,141,108,99,27,216,198,54,177:REM HASH
+17400 VDU 23,36,114,147,156,228,39,57,201,78:REM I_HASH
+17410 VDU 23,B_VERT,24,24,24,24,24,24,24,24:REM VERTICAL(4)
+17420 VDU 23,B_HORZ,0,0,0,255,255,0,0,0:REM HORIZONTAL(4)
+17430 VDU 23,B_UR,0,0,0,7,15,28,24,24:REM UPRIGHT C(4)
+17440 VDU 23,B_UL,0,0,0,224,240,56,24,24:REM UPLEFT C(4)
+17450 VDU 23,B_DL,24,24,56,240,224,0,0,0:REM DOWNLEFT C(4)
+17460 VDU 23,B_DR,24,24,28,15,7,0,0,0:REM DOWN RIGHT C(4)
+17470 VDU 23,PWN_1,24,24,24,24,24,24,24,24:REM PAWN 1
+17480 VDU 23,PWN_2,0,12,12,12,12,60,60,0:REM PAWN 2
+17490 VDU 23,PWN_3,0,48,48,48,48,60,60,0:REM PAWN 3
+17500 VDU 23,PWN_4,0,0,60,60,60,60,0,0:REM PAWN 4
+17510 VDU 23,PWN_5,0,0,30,30,120,120,0,0:REM PAWN 5
+17520 VDU 23,PWN_6,0,0,126,126,24,24,0,0:REM PAWN 6
+17530 VDU 23,PWN_7,0,0,120,120,30,30,0,0:REM PAWN 7
+17540 ENDPROC
+17550 :
+17560 REM ::::::::::::::::::::::::::::::
+17570 REM ::  Error Handling Routine  ::
+17580 REM ::::::::::::::::::::::::::::::
+17590 DEF PROC_HANDLE_ERROR
+17600 IF ERR <> 17 THEN PROC_DEFAULT_COLORS:PROC_SHOW_CURSOR:PRINT:REPORT:PRINT" @line #";ERL:STOP
+17610 ENDPROC
+17620 :
+17630 REM ::::::::::::::::::::::::::::::
+17640 REM ::  Console Output (DEBUG)  ::
+17650 REM ::::::::::::::::::::::::::::::
+17660 DEF PROC_COUT(text$, row%):VDU 31,0,CH%+row%,17,WHITE:PRINT text$:ENDPROC
+17670 :
+17680 REM :::::::::::::::::::::::::::::::
+17690 REM ::  Test FN_GET_KEY (DEBUG)  ::
+17700 REM :::::::::::::::::::::::::::::::
+17710 DEF PROC_KEYTEST:CLS:REPEAT PRINT TAB(18,0)STR$(FN_GET_KEY(30))"   ":UNTIL FALSE
+17720 ENDPROC
