@@ -3,7 +3,7 @@
 TINACOT, a recursive acronym which stands for "TINACOT is not a clone of Tetris", is an action strategy game written in [BBC BASIC v3](https://en.wikipedia.org/wiki/BBC_BASIC) and inspired by [tower defense games](https://en.wikipedia.org/wiki/Tower_defense) and [*Tetris*](https://en.wikipedia.org/wiki/Tetris).
 
 * Originally created for the [4th Olimex AgonLight Week Programming Challenge 2023](https://olimex.wordpress.com/2023/07/14/agonlight-week-programming-challenge-issue-4/)
-* TINACOT may be played on an [AgonLight retro-computer](https://www.olimex.com/Products/Retro-Computers/AgonLight2/open-source-hardware), the [AgonLight Emulator](https://github.com/astralaster/agon-light-emulator/releases), the upcoming [Agon Console8](https://heber.co.uk/agon-console8/), or the [BBC BASIC SDL](http://www.bbcbasic.co.uk/bbcsdl/).
+* TINACOT may be played on an [AgonLight retro-computer](https://www.olimex.com/Products/Retro-Computers/AgonLight2/open-source-hardware), the [AgonLight Emulator](https://github.com/tomm/fab-agon-emulator/releases), the upcoming [Agon Console8](https://heber.co.uk/agon-console8/), or the [BBC BASIC SDL](http://www.bbcbasic.co.uk/bbcsdl/).
 
 ## HOW TO PLAY
 
